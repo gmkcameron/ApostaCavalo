@@ -1,6 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.Random;
+import java.util.LinkedList;
 
 public class ApostaDeCavalo extends JFrame {
     private final String[] horses = {"Relâmpago", "Tempestade", "Trovão", "Furacão", "Vento Forte"};
@@ -10,13 +10,16 @@ public class ApostaDeCavalo extends JFrame {
     private final JLabel balanceLabel;
     private final JButton placeBetButton;
     private final RacePanel racePanel;
+    private final DefaultListModel<String> historyModel;
+    private final JList<String> historyList;
 
     private boolean raceInProgress = false;
     private double saldo = 1000.00; // Saldo inicial do jogador
+    private final LinkedList<String> raceHistory = new LinkedList<>(); // Lista para armazenar o histórico
 
     public ApostaDeCavalo() {
         setTitle("🏇 Apostas de Cavalos");
-        setSize(600, 400);
+        setSize(700, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -41,16 +44,23 @@ public class ApostaDeCavalo extends JFrame {
         racePanel = new RacePanel(horses);
         add(racePanel, BorderLayout.CENTER);
 
+        // Histórico de Corridas
+        historyModel = new DefaultListModel<>();
+        historyList = new JList<>(historyModel);
+        JScrollPane scrollPane = new JScrollPane(historyList);
+        scrollPane.setBorder(BorderFactory.createTitledBorder("📜 Histórico de Corridas"));
+        scrollPane.setPreferredSize(new Dimension(200, 400));
+        add(scrollPane, BorderLayout.EAST);
+
         JPanel bottomPanel = new JPanel();
         placeBetButton = new JButton("Apostar e Iniciar Corrida!");
         bottomPanel.add(placeBetButton);
-        
-        // Ajustando a exibição do resultado
+
         resultLabel = new JLabel("<html><b>Resultado:</b> Aguardando aposta...</html>", SwingConstants.CENTER);
         resultLabel.setFont(new Font("Arial", Font.BOLD, 14));
         resultLabel.setForeground(Color.BLUE);
         bottomPanel.add(resultLabel);
-        
+
         add(bottomPanel, BorderLayout.SOUTH);
 
         placeBetButton.addActionListener(e -> {
@@ -105,6 +115,9 @@ public class ApostaDeCavalo extends JFrame {
                 // Atualizar saldo na interface
                 balanceLabel.setText("💰 Saldo: R$" + String.format("%.2f", saldo));
 
+                // Adicionar resultado ao histórico
+                addToHistory(selectedHorse, winningHorse, betAmount, saldo);
+
                 // Verificar se o saldo zerou e desativar botão de aposta
                 if (saldo <= 0) {
                     placeBetButton.setEnabled(false);
@@ -115,6 +128,26 @@ public class ApostaDeCavalo extends JFrame {
 
         } catch (NumberFormatException ex) {
             resultLabel.setText("<html><b>⚠️ Insira um valor de aposta numérico.</b></html>");
+        }
+    }
+
+    private void addToHistory(String apostado, String vencedor, double aposta, double saldoFinal) {
+        String resultado = "🐎 Apostou em: " + apostado +
+                " | 🏆 Vencedor: " + vencedor +
+                " | 💰 Aposta: R$" + String.format("%.2f", aposta) +
+                " | 🏦 Saldo: R$" + String.format("%.2f", saldoFinal);
+        
+        raceHistory.addFirst(resultado);
+        
+        // Mantém no máximo 10 registros
+        if (raceHistory.size() > 10) {
+            raceHistory.removeLast();
+        }
+
+        // Atualiza o histórico na interface
+        historyModel.clear();
+        for (String r : raceHistory) {
+            historyModel.addElement(r);
         }
     }
 
