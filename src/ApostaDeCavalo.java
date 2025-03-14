@@ -85,9 +85,14 @@ public class ApostaDeCavalo extends JFrame {
                 String winningHorse = racePanel.getWinningHorse();
                 
                 if (selectedHorse.equals(winningHorse)) {
-                    double prize = betAmount * 2;
-                    saldo += prize; // Adiciona o prêmio ao saldo
-                    resultLabel.setText("🎉 " + winningHorse + " venceu! Você ganhou R$" + String.format("%.2f", prize));
+                    double lucroBruto = betAmount * 2; // O valor ganho antes da taxa
+                    double taxaCasa = lucroBruto * 0.10; // 10% para a Casa de Apostas
+                    double lucroLiquido = lucroBruto - taxaCasa; // O que o jogador recebe
+
+                    saldo += lucroLiquido; // Atualiza saldo do jogador
+                    resultLabel.setText("🎉 " + winningHorse + " venceu! Você ganhou R$" + 
+                        String.format("%.2f", lucroLiquido) + 
+                        " (Desconto da Casa: R$" + String.format("%.2f", taxaCasa) + ")");
                 } else {
                     resultLabel.setText("❌ O cavalo vencedor foi " + winningHorse + ". Você perdeu R$" + String.format("%.2f", betAmount));
                 }
