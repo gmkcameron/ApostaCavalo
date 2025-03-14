@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ApostaDeCavalo extends JFrame {
     private final String[] horses = {"Relâmpago", "Tempestade", "Trovão", "Furacão", "Vento Forte"};
@@ -15,13 +17,18 @@ public class ApostaDeCavalo extends JFrame {
 
     private boolean raceInProgress = false;
     private double saldo = 1000.00; // Saldo inicial do jogador
-    private final LinkedList<String> raceHistory = new LinkedList<>(); // Lista para armazenar o histórico
+    private final Map<String, Integer> horseWins = new HashMap<>(); // Contador de vitórias por cavalo
 
     public ApostaDeCavalo() {
         setTitle("🏇 Apostas de Cavalos");
         setSize(700, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+
+        // Inicializa contadores de vitórias para cada cavalo
+        for (String horse : horses) {
+            horseWins.put(horse, 0);
+        }
 
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new GridLayout(3, 2));
@@ -44,11 +51,11 @@ public class ApostaDeCavalo extends JFrame {
         racePanel = new RacePanel(horses);
         add(racePanel, BorderLayout.CENTER);
 
-        // Histórico de Corridas
+        // Histórico de Vitórias dos Cavalos
         historyModel = new DefaultListModel<>();
         historyList = new JList<>(historyModel);
         JScrollPane scrollPane = new JScrollPane(historyList);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("📜 Histórico de Corridas"));
+        scrollPane.setBorder(BorderFactory.createTitledBorder("🏆 Ranking de Vitórias"));
         scrollPane.setPreferredSize(new Dimension(200, 400));
         add(scrollPane, BorderLayout.EAST);
 
@@ -98,6 +105,10 @@ public class ApostaDeCavalo extends JFrame {
                 raceInProgress = false;
                 String winningHorse = racePanel.getWinningHorse(); // Obtém o cavalo vencedor
                 
+                // Atualiza o número de vitórias do cavalo vencedor
+                horseWins.put(winningHorse, horseWins.get(winningHorse) + 1);
+                updateHistory(); // Atualiza o ranking na interface
+
                 if (selectedHorse.equals(winningHorse)) {
                     double lucroBruto = betAmount * 2; // O valor ganho antes da taxa
                     double taxaCasa = lucroBruto * 0.10; // 10% para a Casa de Apostas
@@ -115,9 +126,6 @@ public class ApostaDeCavalo extends JFrame {
                 // Atualizar saldo na interface
                 balanceLabel.setText("💰 Saldo: R$" + String.format("%.2f", saldo));
 
-                // Adicionar resultado ao histórico
-                addToHistory(selectedHorse, winningHorse, betAmount, saldo);
-
                 // Verificar se o saldo zerou e desativar botão de aposta
                 if (saldo <= 0) {
                     placeBetButton.setEnabled(false);
@@ -131,24 +139,13 @@ public class ApostaDeCavalo extends JFrame {
         }
     }
 
-    private void addToHistory(String apostado, String vencedor, double aposta, double saldoFinal) {
-        String resultado = "🐎 Apostou em: " + apostado +
-                " | 🏆 Vencedor: " + vencedor +
-                " | 💰 Aposta: R$" + String.format("%.2f", aposta) +
-                " | 🏦 Saldo: R$" + String.format("%.2f", saldoFinal);
-        
-        raceHistory.addFirst(resultado);
-        
-        // Mantém no máximo 10 registros
-        if (raceHistory.size() > 10) {
-            raceHistory.removeLast();
-        }
-
-        // Atualiza o histórico na interface
+    private void updateHistory() {
         historyModel.clear();
-        for (String r : raceHistory) {
-            historyModel.addElement(r);
-        }
+
+        // Ordena os cavalos por número de vitórias em ordem decrescente
+        horseWins.entrySet().stream()
+                .sorted((a, b) -> b.getValue().compareTo(a.getValue())) // Ordena pelo número de vitórias
+                .forEach(entry -> historyModel.addElement("🏇 " + entry.getKey() + " - " + entry.getValue() + " vitórias"));
     }
 
     public static void main(String[] args) {
