@@ -44,7 +44,11 @@ public class ApostaDeCavalo extends JFrame {
         JPanel bottomPanel = new JPanel();
         placeBetButton = new JButton("Apostar e Iniciar Corrida!");
         bottomPanel.add(placeBetButton);
-        resultLabel = new JLabel("Resultado: ");
+        
+        // Ajustando a exibição do resultado
+        resultLabel = new JLabel("<html><b>Resultado:</b> Aguardando aposta...</html>", SwingConstants.CENTER);
+        resultLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        resultLabel.setForeground(Color.BLUE);
         bottomPanel.add(resultLabel);
         
         add(bottomPanel, BorderLayout.SOUTH);
@@ -66,12 +70,12 @@ public class ApostaDeCavalo extends JFrame {
             double betAmount = Double.parseDouble(betAmountText);
             
             if (betAmount <= 0) {
-                resultLabel.setText("⚠️ Digite um valor de aposta válido.");
+                resultLabel.setText("<html><b>⚠️ Digite um valor de aposta válido.</b></html>");
                 return;
             }
             
             if (betAmount > saldo) {
-                resultLabel.setText("❌ Saldo insuficiente para essa aposta!");
+                resultLabel.setText("<html><b>❌ Saldo insuficiente para essa aposta!</b></html>");
                 return;
             }
 
@@ -82,7 +86,7 @@ public class ApostaDeCavalo extends JFrame {
             raceInProgress = true;
             racePanel.startRace(() -> {
                 raceInProgress = false;
-                String winningHorse = racePanel.getWinningHorse();
+                String winningHorse = racePanel.getWinningHorse(); // Obtém o cavalo vencedor
                 
                 if (selectedHorse.equals(winningHorse)) {
                     double lucroBruto = betAmount * 2; // O valor ganho antes da taxa
@@ -90,11 +94,12 @@ public class ApostaDeCavalo extends JFrame {
                     double lucroLiquido = lucroBruto - taxaCasa; // O que o jogador recebe
 
                     saldo += lucroLiquido; // Atualiza saldo do jogador
-                    resultLabel.setText("🎉 " + winningHorse + " venceu! Você ganhou R$" + 
-                        String.format("%.2f", lucroLiquido) + 
-                        " (Desconto da Casa: R$" + String.format("%.2f", taxaCasa) + ")");
+                    resultLabel.setText("<html><b>🏆 O cavalo vencedor foi: " + winningHorse + 
+                        "!</b><br>🎉 Você ganhou R$" + String.format("%.2f", lucroLiquido) + 
+                        " (Casa ficou com: R$" + String.format("%.2f", taxaCasa) + ")</html>");
                 } else {
-                    resultLabel.setText("❌ O cavalo vencedor foi " + winningHorse + ". Você perdeu R$" + String.format("%.2f", betAmount));
+                    resultLabel.setText("<html><b>❌ O cavalo vencedor foi: " + winningHorse + 
+                        ".</b><br>Você perdeu R$" + String.format("%.2f", betAmount) + "</html>");
                 }
 
                 // Atualizar saldo na interface
@@ -103,12 +108,13 @@ public class ApostaDeCavalo extends JFrame {
                 // Verificar se o saldo zerou e desativar botão de aposta
                 if (saldo <= 0) {
                     placeBetButton.setEnabled(false);
-                    resultLabel.setText("🚫 Você ficou sem saldo! Reinicie o jogo.");
+                    resultLabel.setText("<html><b>🚫 O cavalo vencedor foi: " + winningHorse + 
+                        ".</b><br>Você ficou sem saldo! Reinicie o jogo.</html>");
                 }
             });
 
         } catch (NumberFormatException ex) {
-            resultLabel.setText("⚠️ Insira um valor de aposta numérico.");
+            resultLabel.setText("<html><b>⚠️ Insira um valor de aposta numérico.</b></html>");
         }
     }
 
